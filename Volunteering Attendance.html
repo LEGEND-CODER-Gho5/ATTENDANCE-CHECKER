@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Volunteering Attendance</title>
+<style>
+:root{--bg:#f3f5f7;--card:#fff;--ink:#17202a;--mut:#667380;--line:#dde3e8;--ok:#188a4a;--okbg:#e5f5ec;--no:#d03535;--nobg:#fbe9e9;--on:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1418;--card:#182026;--ink:#eaf0f4;--mut:#92a0ac;--line:#2a343c;--ok:#3ccf80;--okbg:#14301f;--no:#f26b6b;--nobg:#3a1d1f;--on:#06140c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0f1418;--card:#182026;--ink:#eaf0f4;--mut:#92a0ac;--line:#2a343c;--ok:#3ccf80;--okbg:#14301f;--no:#f26b6b;--nobg:#3a1d1f;--on:#06140c;color-scheme:dark}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+#app{max-width:860px;margin:0 auto;padding:20px 14px 48px}
+h1{font-size:1.5rem;margin:0 0 2px}
+.mut{color:var(--mut)}
+header p{margin:0}
+.steps{display:flex;gap:8px;list-style:none;padding:0;margin:14px 0}
+.steps li{padding:6px 12px;border:1px solid var(--line);border-radius:99px;color:var(--mut);font-size:.9rem}
+.steps li.cur{background:var(--ink);color:var(--bg);border-color:var(--ink);font-weight:600}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:12px 20px;align-items:center}
+.pg{flex:1 1 240px}
+.pg strong{font-size:1.15rem}
+.bar{height:10px;background:var(--line);border-radius:99px;overflow:hidden;margin:6px 0}
+.bar i{display:block;height:100%;background:var(--ok);transition:width .25s}
+.hint{font-size:.88rem;color:var(--mut);margin:0}
+.go,.sec{font:inherit;font-weight:700;border-radius:12px;padding:14px 18px;cursor:pointer;border:2px solid var(--ink)}
+.go{background:var(--ink);color:var(--bg)}
+.sec{background:transparent;color:var(--ink);border-color:var(--line);font-weight:600;padding:10px 14px}
+.go:disabled{opacity:.35;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--ok);outline-offset:2px}
+.acts{display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 0}
+.wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:340px}
+th{font-size:.85rem;color:var(--mut);font-weight:600;text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tbody tr:last-child td{border-bottom:0}
+tr.p{background:var(--okbg)}
+tr.a{background:var(--nobg)}
+.nm{font-weight:600}
+.c{text-align:center}
+th.c{text-align:center}
+.b{width:58px;height:52px;border-radius:12px;font-size:1.6rem;font-weight:700;line-height:1;border:2px solid;background:transparent;cursor:pointer;transition:opacity .15s}
+.b.ok{color:var(--ok);border-color:var(--ok)}
+.b.no{color:var(--no);border-color:var(--no)}
+.b.ok.on{background:var(--ok);color:var(--on)}
+.b.no.on{background:var(--no);color:var(--on)}
+.b.dim{opacity:.3}
+.u{font:inherit;font-size:.82rem;color:var(--mut);background:none;border:0;padding:6px 0 6px 10px;cursor:pointer;text-decoration:underline}
+.tag-a{color:var(--no);font-weight:600}
+.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+th.num{text-align:right}
+tfoot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.stat b{display:block;font-size:1.6rem;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat span{font-size:.85rem;color:var(--mut)}
+.note{font-size:.85rem;color:var(--mut);margin:10px 2px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const M=['Adithya Kolluri','Kyrus Estafanous','Akshaj Priyadarshan','Mayank Bhoyar','Satvik Pandey','Sathvik Ippagunta','Nirbhay Kandale','Mridul Boddu','Oliver Merrill','Zaid Khan','Srijeet Ghosh','Tejas Kaikala','Almeir','Alex'];
+const KEY='vol-attendance-v1';
+const fresh=()=>({phase:'in',date:Date.now(),rec:M.map(()=>({s:null,i:null,o:null}))});
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.rec&&j.rec.length===M.length)return j}catch(e){}return fresh()}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+let S=load(),confirmNew=false;
+const T=t=>new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit',second:'2-digit'});
+const mins=r=>Math.round((r.o-r.i)/60000);
+const dur=m=>m<60?m+' min':Math.floor(m/60)+' h '+(m%60)+' min';
+const hrs=m=>(m/60).toFixed(2);
+const panel=(label,f,btn,hint)=>`<div class="panel"><div class="pg"><strong>${label}</strong><div class="bar"><i style="width:${Math.round(f*100)}%"></i></div><p class="hint">${hint}</p></div>${btn}</div>`;
+const undo=(a,i)=>`<button class="u" data-a="${a}" data-i="${i}">↺ Undo</button>`;
+
+function render(){
+  const R=S.rec,n=R.filter(r=>r.s).length,pr=R.filter(r=>r.s==='p'),so=pr.filter(r=>r.o).length,ph=S.phase,N=M.length;
+  const d=new Date(S.date).toLocaleDateString([],{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  let h=`<header><h1>Volunteering Attendance</h1><p class="mut">${d}</p><ol class="steps">${[['in','Sign-in'],['out','Sign-out'],['report','Report']].map((x,k)=>`<li class="${x[0]===ph?'cur':''}">${k+1}. ${x[1]}</li>`).join('')}</ol></header>`;
+
+  if(ph==='in'){
+    h+=panel(`${n}/${N} members processed`,n/N,`<button class="go" data-a="toout" ${n<N?'disabled':''}>PROCEED TO SIGN-OUT</button>`,n<N?'Mark each member Present or Absent, in any order. Use Undo to fix a mistake.':'Everyone is marked. Proceeding locks in the sign-in times.');
+    h+=`<div class="wrap"><table><thead><tr><th>Member Name</th><th class="c">Present ✓</th><th class="c">Absent ✕</th><th>Sign-in Time</th></tr></thead><tbody>${M.map((m,i)=>{const r=R[i];
+      return `<tr class="${r.s||''}"><td class="nm">${m}</td>
+      <td class="c"><button class="b ok${r.s==='p'?' on':r.s?' dim':''}" data-a="p" data-i="${i}" aria-label="Mark ${m} present">✓</button></td>
+      <td class="c"><button class="b no${r.s==='a'?' on':r.s?' dim':''}" data-a="a" data-i="${i}" aria-label="Mark ${m} absent">✕</button></td>
+      <td>${r.s==='p'?`<b>${T(r.i)}</b>`:r.s==='a'?'<b class="tag-a">Absent</b>':'<span class="mut">Automatically recorded</span>'}${r.s?undo('u',i):''}</td></tr>`}).join('')}</tbody></table></div>`;
+  }
+
+  if(ph==='out'){
+    h+=panel(`${so}/${pr.length} signed out`,pr.length?so/pr.length:1,`<button class="go" data-a="toreport" ${so<pr.length?'disabled':''}>SHOW VOLUNTEERING HOUR REPORT</button>`,so<pr.length?'Sign out each present member, in any order. Absent members stay absent.':'All present members are signed out.');
+    h+=`<div class="wrap"><table><thead><tr><th>Member Name</th><th>Sign-in</th><th>Sign-out</th><th>Total</th></tr></thead><tbody>${M.map((m,i)=>{const r=R[i];
+      if(r.s!=='p')return `<tr class="a"><td class="nm">${m}</td><td colspan="3"><b class="tag-a">Absent</b> <span class="mut">(no sign-out)</span></td></tr>`;
+      return `<tr class="${r.o?'p':''}"><td class="nm">${m}</td><td>${T(r.i)}</td>
+      <td>${r.o?`<b>${T(r.o)}</b>${undo('uo',i)}`:`<button class="b ok on" data-a="o" data-i="${i}" aria-label="Sign out ${m}">✓</button>`}</td>
+      <td>${r.o?`<b>${dur(mins(r))}</b>`:'<span class="mut">Pending</span>'}</td></tr>`}).join('')}</tbody></table></div>`;
+    if(so===0)h+=`<div class="acts"><button class="sec" data-a="backin">← Back to sign-in</button></div>`;
+  }
+
+  if(ph==='report'){
+    const rows=pr.length,tm=pr.reduce((s,r)=>s+mins(r),0);
+    h+=`<div class="stats"><div class="stat"><b>${rows}</b><span>Present</span></div><div class="stat"><b>${N-rows}</b><span>Absent</span></div><div class="stat"><b>${dur(tm)}</b><span>Total time</span></div><div class="stat"><b>${hrs(tm)}</b><span>Total volunteering hours</span></div></div>`;
+    h+=`<div class="wrap"><table><thead><tr><th>Member Name</th><th>Sign-in</th><th>Sign-out</th><th class="num">Time</th><th class="num">Hours</th></tr></thead><tbody>${M.map((m,i)=>{const r=R[i];
+      if(r.s!=='p')return `<tr class="a"><td class="nm">${m}</td><td colspan="2"><b class="tag-a">Absent</b></td><td class="num">0 min</td><td class="num">0.00</td></tr>`;
+      const x=mins(r);return `<tr><td class="nm">${m}</td><td>${T(r.i)}</td><td>${T(r.o)}</td><td class="num">${dur(x)}</td><td class="num"><b>${hrs(x)}</b></td></tr>`}).join('')}</tbody>
+      <tfoot><tr><td colspan="3">Total (${rows} present)</td><td class="num">${dur(tm)}</td><td class="num">${hrs(tm)}</td></tr></tfoot></table></div>
+      <p class="note">Each member’s time is rounded to the nearest minute; hours are minutes ÷ 60. The total adds the per-member minutes.</p>
+      <div class="acts"><button class="sec" data-a="copy">Copy report</button><button class="sec" data-a="backout">← Back to sign-out</button><button class="sec" data-a="newsession">${confirmNew?'Tap again to confirm':'Start new session'}</button></div>`;
+  }
+  document.getElementById('app').innerHTML=h;
+}
+
+function reportText(){
+  const L=['Volunteering Hour Report - '+new Date(S.date).toLocaleDateString(),'Member\tSign-in\tSign-out\tMinutes\tHours'];let tm=0;
+  S.rec.forEach((r,i)=>{if(r.s==='p'){const x=mins(r);tm+=x;L.push([M[i],T(r.i),T(r.o),x,hrs(x)].join('\t'))}else L.push([M[i],'Absent','-',0,'0.00'].join('\t'))});
+  L.push(['Total','','',tm,hrs(tm)].join('\t'));return L.join('\n');
+}
+
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-a]');if(!b||b.disabled)return;
+  const a=b.dataset.a,r=S.rec[+b.dataset.i],R=S.rec,pr=R.filter(x=>x.s==='p');
+  if(a==='copy'){try{await navigator.clipboard.writeText(reportText());b.textContent='Copied ✓'}catch(err){b.textContent='Copy unavailable here'}return}
+  if(a==='p'){if(r.s!=='p'){r.s='p';r.i=Date.now();r.o=null}}
+  else if(a==='a'){r.s='a';r.i=null;r.o=null}
+  else if(a==='u'){r.s=null;r.i=null;r.o=null}
+  else if(a==='o'){if(r.s==='p'&&!r.o)r.o=Date.now()}
+  else if(a==='uo'){r.o=null}
+  else if(a==='toout'){if(R.every(x=>x.s))S.phase='out'}
+  else if(a==='backin'){if(!pr.some(x=>x.o))S.phase='in'}
+  else if(a==='toreport'){if(pr.every(x=>x.o))S.phase='report'}
+  else if(a==='backout'){S.phase='out'}
+  else if(a==='newsession'){
+    if(confirmNew){S=fresh();confirmNew=false}
+    else{confirmNew=true;setTimeout(()=>{confirmNew=false;render()},4000)}
+  }
+  save();render();
+});
+render();
+</script>
+</body>
+</html>
